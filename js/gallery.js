@@ -22,11 +22,9 @@ const gallery = {
         gallery.clearRain();
         container.innerHTML = '';
 
-        // 1. SETUP PHOTOS (Circular Layout)
         const angleStep = (2 * Math.PI) / gallery.photos.length;
         const centerX = window.innerWidth / 2;
         const centerY = window.innerHeight / 2;
-        // Adjust radius based on screen size so it fits well
         const radius = Math.min(window.innerWidth, window.innerHeight) * (window.innerWidth < 768 ? 0.4 : 0.35);
 
         gallery.photos.forEach((photo, index) => {
@@ -34,12 +32,11 @@ const gallery = {
             frame.className = 'photo-frame';
 
             const angle = index * angleStep;
-            const x = centerX + radius * Math.cos(angle) - 60; // -60 centers the 120px frame
+            const x = centerX + radius * Math.cos(angle) - 60;
             const y = centerY + radius * Math.sin(angle) - 60;
 
             frame.style.left = `${x}px`;
             frame.style.top = `${y}px`;
-            // Random slight tilt for organic feel
             frame.style.transform = `rotate(${Math.random() * 20 - 10}deg)`;
 
             const img = document.createElement('img');
@@ -56,7 +53,6 @@ const gallery = {
             frame.onclick = () => gallery.openModal(photo);
             container.appendChild(frame);
 
-            // Floating Animation for Photos
             gsap.to(frame, {
                 y: Math.random() * 20 - 10,
                 duration: 2 + Math.random() * 2,
@@ -67,7 +63,6 @@ const gallery = {
             });
         });
 
-        // 2. START THE RAIN
         gallery.createRain(container);
     },
 
@@ -125,7 +120,6 @@ const gallery = {
         msg.textContent = photoData.msg;
 
         modal.classList.remove('hidden');
-        // Small delay to allow display:flex to apply before opacity transition
         requestAnimationFrame(() => {
             modal.classList.add('active');
         });
@@ -141,11 +135,9 @@ const gallery = {
     }
 };
 
-// Re-init on resize to keep photos circular
 window.addEventListener('resize', () => {
     const galleryScreen = document.getElementById('screen-gallery');
     if (galleryScreen && !galleryScreen.classList.contains('hidden')) {
-        // Debounce slightly so it doesn't crash browser
         clearTimeout(window.resizeTimer);
         window.resizeTimer = setTimeout(() => {
             gallery.init();

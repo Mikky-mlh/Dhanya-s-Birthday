@@ -236,7 +236,6 @@ class WhackScene extends Phaser.Scene {
         this.spawnDelay = 1100;
         this.targetDuration = 1300;
         
-        // Audio ducking properties
         this.bgmVolume = 0.25;
         this.bgmDuckedVolume = 0.03;
         this.bgmRestoreTimer = null;
@@ -672,27 +671,19 @@ class WhackScene extends Phaser.Scene {
         });
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // AUDIO DUCKING SYSTEM - Makes SFX clearly audible over BGM
-    // ═══════════════════════════════════════════════════════════════
-    
     duckBGM(durationMs) {
         if (!this.bgm || this.isGameOver) return;
         
-        // Kill any existing volume tweens to prevent conflicts
         this.tweens.killTweensOf(this.bgm);
         
-        // Clear any pending restore timer
         if (this.bgmRestoreTimer) {
             this.bgmRestoreTimer.destroy();
             this.bgmRestoreTimer = null;
         }
         
-        // Immediately duck the volume
         this.bgm.setVolume(this.bgmDuckedVolume);
         this.isDucking = true;
         
-        // Schedule volume restoration
         this.bgmRestoreTimer = this.time.delayedCall(durationMs, () => {
             if (this.bgm && !this.isGameOver) {
                 this.isDucking = false;
@@ -708,23 +699,19 @@ class WhackScene extends Phaser.Scene {
 
     playHitSound() {
         if (this.cache.audio.exists('hit-sound')) {
-            // Duck the BGM for the duration of the hit sound
             this.duckBGM(250);
             
-            // Play hit sound with increased volume
             this.sound.play('hit-sound', { 
                 volume: 0.7,
-                rate: 1 + (Math.random() * 0.1 - 0.05) // Slight pitch variation
+                rate: 1 + (Math.random() * 0.1 - 0.05)
             });
         }
     }
 
     playBombSound() {
         if (this.cache.audio.exists('bomb-sound')) {
-            // Duck the BGM longer for bomb explosion
             this.duckBGM(500);
             
-            // Play bomb sound with higher volume
             this.sound.play('bomb-sound', { 
                 volume: 0.85
             });
@@ -759,7 +746,6 @@ class WhackScene extends Phaser.Scene {
         this.input.off('pointerdown');
         this.input.off('pointermove');
         
-        // Fade out BGM smoothly
         if (this.bgm) {
             this.tweens.add({
                 targets: this.bgm,

@@ -1,4 +1,5 @@
 const reasons = {
+    // ... (keep reasonsList as is) ...
     reasonsList: [
         "Your smile lights up every room you walk into ✨",
         "You have the kindest heart I've ever known 💖",
@@ -36,15 +37,12 @@ const reasons = {
             reasonCard.className = 'reason-card';
             reasonCard.dataset.index = index;
 
-            // Front (hidden state)
+            // Front
             const front = document.createElement('div');
             front.className = 'reason-front';
-            front.innerHTML = `
-                <div class="reason-number">${index + 1}</div>
-                <div class="reason-icon">⭐</div>
-            `;
+            front.innerHTML = `<div class="reason-number">${index + 1}</div><div class="reason-icon">⭐</div>`;
 
-            // Back (revealed state)
+            // Back
             const back = document.createElement('div');
             back.className = 'reason-back';
             back.innerHTML = `<p>${reason}</p>`;
@@ -53,16 +51,13 @@ const reasons = {
             reasonCard.appendChild(back);
             container.appendChild(reasonCard);
 
-            // Add click event
             reasonCard.addEventListener('click', () => reasons.reveal(reasonCard, index));
 
-            // Staggered entrance
             gsap.from(reasonCard, {
-                scale: 0,
+                scale: 0.8,
                 opacity: 0,
-                rotateY: -180,
-                duration: 0.6,
-                delay: index * 0.05,
+                duration: 0.4,
+                delay: index * 0.03,
                 ease: "back.out(1.7)"
             });
         });
@@ -74,23 +69,37 @@ const reasons = {
         card.classList.add('revealed');
         reasons.revealed.add(index);
 
-        // Flip animation
-        gsap.to(card, {
+        // --- NEW IMPRESSIVELY SMOOTH ANIMATION ---
+        const tl = gsap.timeline();
+
+        // 1. Pop up slightly
+        tl.to(card, {
+            scale: 1.1,
+            zIndex: 50,
+            duration: 0.2,
+            ease: "power1.out"
+        })
+        // 2. Flip around center
+        .to(card, {
             rotateY: 180,
-            duration: 0.6,
-            ease: "power2.inOut"
+            duration: 0.5,
+            ease: "power2.inOut",
+        })
+        // 3. Settle back down
+        .to(card, {
+            scale: 1,
+            zIndex: 1,
+            duration: 0.3,
+            ease: "power1.in"
         });
 
-        // Add sparkle effect
         reasons.addSparkles(card);
-
-        // Play a pleasant chime sound
         reasons.playRevealSound(index);
     },
 
+    // ... (keep revealAll, addSparkles, playRevealSound as is) ...
     revealAll: () => {
         const cards = document.querySelectorAll('.reason-card:not(.revealed)');
-        
         cards.forEach((card, i) => {
             const index = parseInt(card.dataset.index);
             setTimeout(() => {
@@ -98,7 +107,6 @@ const reasons = {
             }, i * 100);
         });
 
-        // Disable the button after clicking
         const btn = document.querySelector('.reveal-all-btn');
         if (btn && cards.length > 0) {
             btn.disabled = true;
@@ -109,23 +117,26 @@ const reasons = {
             }, 3000);
         }
     },
-
+    
     addSparkles: (card) => {
         const sparkleCount = 8;
         const rect = card.getBoundingClientRect();
-        const containerRect = card.parentElement.getBoundingClientRect();
-
+        
+        // Fix: Ensure sparkles are positioned relative to the card container correctly
+        // Use card's offsetParent for cleaner positioning if needed, or simple append
         for (let i = 0; i < sparkleCount; i++) {
             const sparkle = document.createElement('div');
             sparkle.className = 'sparkle';
             sparkle.textContent = '✨';
-            sparkle.style.left = `${rect.left - containerRect.left + rect.width / 2}px`;
-            sparkle.style.top = `${rect.top - containerRect.top + rect.height / 2}px`;
-
-            card.parentElement.appendChild(sparkle);
+            
+            // Randomize start position near center of card
+            sparkle.style.left = '50%';
+            sparkle.style.top = '50%';
+            
+            card.appendChild(sparkle); // Append to card so it moves with it
 
             const angle = (Math.PI * 2 * i) / sparkleCount;
-            const distance = 50 + Math.random() * 30;
+            const distance = 60 + Math.random() * 20;
             const tx = Math.cos(angle) * distance;
             const ty = Math.sin(angle) * distance;
 
@@ -134,30 +145,24 @@ const reasons = {
                 y: ty,
                 opacity: 0,
                 scale: 0,
-                duration: 0.8,
+                duration: 0.6,
                 ease: "power2.out",
                 onComplete: () => sparkle.remove()
             });
         }
     },
-
+    
     playRevealSound: (index) => {
-        // Create a pleasant chime sound
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-
-        // Different frequencies for variety
         const frequencies = [523.25, 587.33, 659.25, 698.46, 783.99, 880.00];
         oscillator.frequency.value = frequencies[index % frequencies.length];
         oscillator.type = 'sine';
-
-        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.5);
     }

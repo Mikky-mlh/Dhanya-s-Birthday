@@ -33,53 +33,73 @@ var app = {
             app.parallaxScene = null;
         }
 
+        // Fade out current screen before showing new one
         document.querySelectorAll('.screen').forEach(el => {
-            el.classList.remove('active');
-            setTimeout(() => {
-                el.classList.add('hidden');
-            }, 300);
+            if (el.classList.contains('active')) {
+                gsap.to(el, {
+                    opacity: 0,
+                    scale: 0.95,
+                    duration: 0.5,
+                    ease: "power2.inOut",
+                    onComplete: () => {
+                        el.classList.remove('active');
+                        el.classList.add('hidden');
+                    }
+                });
+            }
         });
 
         const target = document.getElementById(screenId);
         target.classList.remove('hidden');
 
-        target.style.opacity = '1';
+        // Reset the target screen's transform properties
+        target.style.opacity = '0';
+        target.style.scale = '0.95';
         target.style.visibility = 'visible';
 
-        requestAnimationFrame(() => {
-            target.classList.add('active');
+        // Animate in the new screen
+        gsap.to(target, {
+            opacity: 1,
+            scale: 1,
+            duration: 0.6,
+            delay: 0.1,
+            ease: "power2.out",
+            onComplete: () => {
+                target.classList.add('active');
 
-            if (screenId === 'screen-whack') {
-                if (typeof initWhackGame === 'function') {
-                    initWhackGame();
-                }
-            } else if (screenId === 'screen-wishes') {
-                if (typeof wishes !== 'undefined' && wishes.init) {
-                    wishes.init();
-                }
-            } else if (screenId === 'screen-reasons') {
-                if (typeof reasons !== 'undefined' && reasons.init) {
-                    reasons.init();
-                }
-            } else if (screenId === 'screen-final') {
-                if (typeof showFinalMessage === 'function') {
-                    showFinalMessage();
-                }
-            } else if (screenId === 'scene-screen') {
-                if (typeof ParallaxScene !== 'undefined') {
-                    if (!app.parallaxScene) {
-                        app.parallaxScene = new ParallaxScene();
+                // Initialize the specific screen content after animation
+                if (screenId === 'screen-whack') {
+                    if (typeof initWhackGame === 'function') {
+                        initWhackGame();
                     }
-                    app.parallaxScene.init();
-                } else {
-                    console.error('ParallaxScene is not defined');
+                } else if (screenId === 'screen-wishes') {
+                    if (typeof wishes !== 'undefined' && wishes.init) {
+                        wishes.init();
+                    }
+                } else if (screenId === 'screen-reasons') {
+                    if (typeof reasons !== 'undefined' && reasons.init) {
+                        reasons.init();
+                    }
+                } else if (screenId === 'screen-final') {
+                    if (typeof showFinalMessage === 'function') {
+                        showFinalMessage();
+                    }
+                } else if (screenId === 'scene-screen') {
+                    if (typeof ParallaxScene !== 'undefined') {
+                        if (!app.parallaxScene) {
+                            app.parallaxScene = new ParallaxScene();
+                        }
+                        app.parallaxScene.init();
+                    } else {
+                        console.error('ParallaxScene is not defined');
+                    }
+                } else if (screenId === 'screen-gallery') {
+                    if (typeof gallery !== 'undefined' && gallery.init) {
+                        gallery.init();
+                    }
+                    app.addFlowersToScreen();
+                    app.playMainBGM();
                 }
-            } else if (screenId === 'screen-gallery') {
-                if (typeof gallery !== 'undefined' && gallery.init) {
-                    gallery.init();
-                }
-                app.addFlowersToScreen();
-                app.playMainBGM();
             }
         });
     },
@@ -107,18 +127,15 @@ var app = {
         // Clear previous flowers
         flowersContainer.innerHTML = '';
 
-        // Add 20-30 flowers randomly positioned
         const flowerCount = 25;
 
         for (let i = 0; i < flowerCount; i++) {
             const flower = document.createElement('img');
             flower.className = 'flower';
 
-            // Randomly select a flower image (flower1 to flower5)
             const flowerNumber = Math.floor(Math.random() * 5) + 1;
             flower.src = `assets/images/main-screen/flower${flowerNumber}.png`;
 
-            // Fallback to emoji if images don't load
             flower.onerror = function() {
                 const flowerEmojis = ['🌸', '🌺', '🌻', '🌹', '🌷'];
                 const fallbackDiv = document.createElement('div');
@@ -131,22 +148,18 @@ var app = {
                 this.parentNode.replaceChild(fallbackDiv, this);
             };
 
-            // Random position
             const posX = Math.random() * 100;
             const posY = Math.random() * 100;
 
             flower.style.left = `${posX}%`;
             flower.style.top = `${posY}%`;
 
-            // Random rotation
             const rotation = Math.random() * 360;
             flower.style.transform = `rotate(${rotation}deg)`;
 
-            // Random size variation
-            const sizeVariation = 0.7 + Math.random() * 0.6; // Between 0.7x and 1.3x original size
+            const sizeVariation = 0.7 + Math.random() * 0.6;
             flower.style.width = `${80 * sizeVariation}px`;
 
-            // Add floating animation using GSAP if available
             if (typeof gsap !== 'undefined') {
                 gsap.to(flower, {
                     y: Math.random() * 20 - 10,
