@@ -9,8 +9,8 @@
     --cream: #FFF8F0;
     --gold: #D4AF37;
     --bg-gradient: linear-gradient(135deg, #FFF5F7 0%, #FFE4E8 50%, #FFF0F3 100%);
-    --glass: rgba(255, 255, 255, 0.9);
-    --glass-border: rgba(255, 255, 255, 0.9);
+    --glass: rgba(255, 255, 255, 0.95);
+    --glass-border: rgba(255, 255, 255, 0.8);
 }
 
 /* Custom Scrollbar Styling (Webkit/Chrome/Safari/Edge) */
@@ -33,13 +33,30 @@
     background: var(--maroon); 
 }
 
-/* Firefox Scrollbar */
+/* Performance optimizations */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     scrollbar-width: thin;
     scrollbar-color: var(--maroon-light) #FFF0F3;
+}
+
+/* Hardware acceleration for smooth animations */
+.btn, .photo-frame, .wish-card, .reason-card, .flower {
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
+
+/* Remove will-change after animations complete */
+.btn:not(:hover), .photo-frame:not(:hover) {
+    will-change: auto;
 }
 
 html {
@@ -52,8 +69,8 @@ body {
     font-family: 'Poppins', sans-serif;
     height: 100vh;
     overflow: hidden;
-    scroll-behavior: smooth;
-    transition: all 0.5s ease;
+    -webkit-overflow-scrolling: touch;
+    touch-action: manipulation;
 }
 
 .loading-screen {
@@ -68,17 +85,18 @@ body {
     justify-content: center;
     align-items: center;
     z-index: 9999;
-    transition: opacity 0.5s ease;
+    will-change: opacity;
 }
 
 .loading-content {
     text-align: center;
+    transform: translateZ(0);
 }
 
 .loading-heart {
     font-size: 3rem;
     margin-bottom: 20px;
-    animation: bounce 2s infinite;
+    animation: bounce 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .loading-spinner {
@@ -97,8 +115,8 @@ body {
 }
 
 @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-10px) scale(1.05); }
 }
 
 .screen {
@@ -109,11 +127,10 @@ body {
     height: 100%;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.8s ease, transform 0.8s ease;
     z-index: 0;
     overflow: hidden;
     display: none;
-    transform: scale(0.95);
+    transform: translateZ(0);
 }
 
 .screen.active {
@@ -121,7 +138,6 @@ body {
     pointer-events: all;
     z-index: 10;
     display: block !important;
-    transform: scale(1);
 }
 
 .screen.hidden {
@@ -198,21 +214,22 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 8px;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     text-align: center;
     font-family: 'Poppins', sans-serif;
     box-shadow: 0 4px 12px rgba(128, 0, 32, 0.1);
+    transform: translateZ(0);
 }
 
 .btn:hover {
-    transform: translateY(-3px);
+    transform: translateY(-3px) translateZ(0);
     box-shadow: 0 8px 20px rgba(128, 0, 32, 0.15);
     border-color: var(--maroon);
     background: linear-gradient(to bottom, #FFF5F7, white);
 }
 
 .btn:active {
-    transform: scale(0.95) !important;
+    transform: scale(0.98) translateZ(0) !important;
 }
 
 .btn-icon {
@@ -373,6 +390,7 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    will-change: transform;
 }
 
 .wish-envelope {
@@ -566,6 +584,7 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    will-change: transform;
 }
 
 .reason-front {
@@ -688,11 +707,10 @@ body {
     border: 3px solid var(--maroon);
     border-radius: 15px;
     background: radial-gradient(circle, #3d0a0a 0%, #000 100%);
-    box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.5),
-        inset 0 0 30px rgba(128, 0, 32, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     position: relative;
     overflow: hidden;
+    contain: strict;
 }
 
 #whack-game-container::before {
@@ -721,14 +739,13 @@ body {
     width: 120px;
     padding: 10px;
     background: white;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
     border-radius: 8px;
     cursor: pointer;
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s, box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: transform;
-    transform: translateZ(0);
-    backface-visibility: hidden;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1;
+    contain: content;
 }
 
 .photo-frame img {
@@ -741,13 +758,14 @@ body {
 .photo-frame:hover {
     transform: scale(1.2) rotate(0deg) !important;
     z-index: 100;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
 }
 
 .rain-particle {
     position: absolute;
     pointer-events: none;
     z-index: 5;
+    will-change: transform;
 }
 
 .flowers-container {
@@ -759,13 +777,23 @@ body {
     pointer-events: none;
     z-index: 1;
     overflow: hidden;
+    contain: strict;
 }
 
 .flower {
     position: absolute;
     pointer-events: none;
-    opacity: 0.6;
+    opacity: 0.7;
     transition: opacity 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-origin: center;
+}
+
+.flower img {
+    max-width: 100%;
+    height: auto;
 }
 
 /* Final Message Screen */
@@ -915,7 +943,59 @@ body {
 }
 
 /* Responsive Design */
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    .loading-heart,
+    .photo-frame,
+    .flower,
+    .rain-particle,
+    .wish-card,
+    .reason-card {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .btn:hover {
+        transform: none !important;
+    }
+}
+
+/* Mobile optimizations */
 @media (max-width: 768px) {
+    .photo-frame {
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        width: 100px;
+        padding: 8px;
+    }
+    
+    .btn {
+        padding: 14px 12px;
+    }
+    
+    .btn-icon {
+        font-size: 1.8rem;
+    }
+    
+    .btn-text {
+        font-size: 0.9rem;
+    }
+    
+    .flower {
+        opacity: 0.5;
+    }
+    
+    /* Reduce animation intensity on mobile */
+    .photo-frame:hover {
+        transform: scale(1.1) !important;
+    }
+    
+    /* Simplify gradients on mobile for better performance */
+    .hub-controls {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+    }
+
     .title-name {
         font-size: 2.2rem;
     }
@@ -949,6 +1029,33 @@ body {
     #whack-game-container {
         max-width: 100%;
         height: 500px;
+    }
+}
+
+/* High DPI screen optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .photo-frame {
+        border: 1px solid rgba(128, 0, 32, 0.1);
+    }
+    
+    .btn {
+        border-width: 1.5px;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .photo-frame:hover {
+        transform: none !important;
+    }
+    
+    .btn:hover {
+        transform: none !important;
+    }
+    
+    /* Increase touch targets */
+    .btn {
+        min-height: 60px;
     }
 }
 

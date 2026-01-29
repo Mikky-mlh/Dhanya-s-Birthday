@@ -14,12 +14,19 @@ const gallery = {
 
     rainItems: ['✨', '💖', '🦋', '🌷', '🎂' , '💕', '⭐', '💫', '💐', '🌸', '💮', '🪷', '🌹', '🌺'],
     rainParticles: [],
+    resizeTimeout: null,
+    isInitialized: false,
 
     init: () => {
         const container = document.getElementById('gallery-container');
         if (!container) return;
 
-        gallery.clearRain();
+        // Prevent multiple initializations
+        if (gallery.isInitialized) {
+            gallery.clearRain();
+        }
+        
+        gallery.isInitialized = true;
         container.innerHTML = '';
 
         const angleStep = (2 * Math.PI) / gallery.photos.length;
@@ -41,6 +48,7 @@ const gallery = {
 
             const img = document.createElement('img');
             img.loading = 'lazy';
+            img.decoding = 'async';
             img.src = `assets/images/photos/${photo.id}.jpg`;
             img.alt = `Photo ${photo.id}`;
 
@@ -53,9 +61,11 @@ const gallery = {
             frame.onclick = () => gallery.openModal(photo);
             container.appendChild(frame);
 
+            // Smoother floating animation
+            const duration = 2.5 + Math.random() * 1.5;
             gsap.to(frame, {
-                y: Math.random() * 20 - 10,
-                duration: 2 + Math.random() * 2,
+                y: Math.random() * 15 - 7.5,
+                duration: duration,
                 repeat: -1,
                 yoyo: true,
                 ease: "sine.inOut",
@@ -67,7 +77,7 @@ const gallery = {
     },
 
     createRain: (container) => {
-        const particleCount = window.innerWidth < 768 ? 20 : 35;
+        const particleCount = window.innerWidth < 768 ? 15 : 25; // Reduced count
 
         for (let i = 0; i < particleCount; i++) {
             const particle = document.createElement('div');
@@ -75,25 +85,26 @@ const gallery = {
             
             particle.innerText = gallery.rainItems[Math.floor(Math.random() * gallery.rainItems.length)];
             
-            const fontSize = Math.random() * 20 + 15;
+            const fontSize = Math.random() * 15 + 12; // Smaller on average
             particle.style.fontSize = `${fontSize}px`;
-            particle.style.opacity = Math.random() * 0.6 + 0.2;
+            particle.style.opacity = Math.random() * 0.5 + 0.2;
             
             const startX = Math.random() * 100;
             particle.style.left = `${startX}vw`;
-            particle.style.top = '-50px';
+            particle.style.top = '-30px';
 
             container.appendChild(particle);
             gallery.rainParticles.push(particle);
 
+            const duration = Math.random() * 4 + 4;
             gsap.to(particle, {
                 y: '110vh',
-                x: `+=${Math.random() * 100 - 50}`,
-                rotation: Math.random() * 360,
-                duration: Math.random() * 5 + 5,
+                x: `+=${Math.random() * 80 - 40}`,
+                rotation: Math.random() * 180,
+                duration: duration,
                 ease: "none",
                 repeat: -1,
-                delay: Math.random() * 5
+                delay: Math.random() * 4
             });
         }
     },
@@ -135,12 +146,18 @@ const gallery = {
     }
 };
 
+// Throttled resize handler
 window.addEventListener('resize', () => {
     const galleryScreen = document.getElementById('screen-gallery');
     if (galleryScreen && !galleryScreen.classList.contains('hidden')) {
-        clearTimeout(window.resizeTimer);
-        window.resizeTimer = setTimeout(() => {
-            gallery.init();
-        }, 200);
+        if (gallery.resizeTimeout) {
+            clearTimeout(gallery.resizeTimeout);
+        }
+        
+        gallery.resizeTimeout = setTimeout(() => {
+            if (gallery.isInitialized) {
+                requestAnimationFrame(() => gallery.init());
+            }
+        }, 250);
     }
 });
