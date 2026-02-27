@@ -5,143 +5,116 @@ const confetti = {
     animationId: null,
     lastTime: 0,
 
-    // Enhanced shapes and colors
     shapes: ['🎉', '🎊', '💖', '✨', '⭐', '🌟', '💫', '🎀', '🌸', '🎂', '🍰', '🧁', '💝', '🦋', '🌺'],
     colors: ['#FF6B9D', '#FF8FAB', '#FFD93D', '#4ECDC4', '#A8E6CF', '#FFB6C1', '#DDA0DD', '#87CEEB', '#FFB347', '#FF69B4'],
 
     init: () => {
         confetti.canvas = document.getElementById('confetti-canvas');
         if (!confetti.canvas) return;
-
         confetti.ctx = confetti.canvas.getContext('2d', { alpha: true });
         confetti.resize();
-
         window.addEventListener('resize', confetti.resize);
     },
 
     resize: () => {
         if (!confetti.canvas) return;
-        confetti.canvas.width = window.innerWidth;
+        confetti.canvas.width  = window.innerWidth;
         confetti.canvas.height = window.innerHeight;
     },
 
     burst: (x = null, y = null) => {
-        const centerX = x !== null ? x : window.innerWidth / 2;
-        const centerY = y !== null ? y : window.innerHeight / 2;
-
+        const cx = x ?? window.innerWidth  / 2;
+        const cy = y ?? window.innerHeight / 2;
         const isMobile = window.innerWidth < 768;
-        const particleCount = isMobile ? 50 : 80;
-        
-        // Create emoji particles
-        for (let i = 0; i < particleCount * 0.6; i++) {
-            const angle = (Math.PI * 2 * i) / (particleCount * 0.6);
-            const velocity = 5 + Math.random() * 8;
-            
+        const total    = isMobile ? 50 : 80;
+        const emojiN   = Math.floor(total * 0.6);
+        const rectN    = total - emojiN;
+
+        for (let i = 0; i < emojiN; i++) {
+            const angle = (Math.PI * 2 * i) / emojiN;
+            const v = 5 + Math.random() * 8;
             confetti.particles.push({
-                x: centerX,
-                y: centerY,
-                vx: Math.cos(angle) * velocity + (Math.random() - 0.5) * 3,
-                vy: Math.sin(angle) * velocity - 5 + (Math.random() - 0.5) * 3,
-                
+                x: cx, y: cy,
+                vx: Math.cos(angle) * v + (Math.random() - 0.5) * 3,
+                vy: Math.sin(angle) * v - 5 + (Math.random() - 0.5) * 3,
                 type: 'emoji',
                 text: confetti.shapes[Math.floor(Math.random() * confetti.shapes.length)],
-                size: isMobile ? 18 : 28,
-                
+                size: isMobile ? 18 : 26,
                 rotation: Math.random() * Math.PI * 2,
                 rotationSpeed: (Math.random() - 0.5) * 0.15,
-                gravity: 0.12,
-                drag: 0.98,
-                life: 1.0,
-                decay: Math.random() * 0.003 + 0.004
+                gravity: 0.12, drag: 0.98,
+                life: 1.0, decay: Math.random() * 0.003 + 0.004
             });
         }
-        
-        // Create geometric confetti
-        for (let i = 0; i < particleCount * 0.4; i++) {
+
+        for (let i = 0; i < rectN; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const velocity = 6 + Math.random() * 10;
-            
+            const v = 6 + Math.random() * 10;
             confetti.particles.push({
-                x: centerX,
-                y: centerY,
-                vx: Math.cos(angle) * velocity + (Math.random() - 0.5) * 4,
-                vy: Math.sin(angle) * velocity - 6,
-                
+                x: cx, y: cy,
+                vx: Math.cos(angle) * v + (Math.random() - 0.5) * 4,
+                vy: Math.sin(angle) * v - 6,
                 type: 'rect',
                 color: confetti.colors[Math.floor(Math.random() * confetti.colors.length)],
                 width: Math.random() * 10 + 5,
                 height: Math.random() * 6 + 3,
-                
                 rotation: Math.random() * Math.PI * 2,
                 rotationSpeed: (Math.random() - 0.5) * 0.2,
-                gravity: 0.15,
-                drag: 0.97,
-                life: 1.0,
-                decay: Math.random() * 0.004 + 0.005,
+                gravity: 0.15, drag: 0.97,
+                life: 1.0, decay: Math.random() * 0.004 + 0.005,
                 wobble: Math.random() * 10,
                 wobbleSpeed: Math.random() * 0.1 + 0.05
             });
         }
 
-        // Play celebration sound
         confetti.playSound();
-
         if (!confetti.animationId) {
             confetti.lastTime = performance.now();
-            confetti.animate();
+            confetti.animationId = requestAnimationFrame(confetti.animate);
         }
     },
 
-    // Continuous confetti rain effect
     rain: (duration = 5000) => {
         const isMobile = window.innerWidth < 768;
-        const particlesPerFrame = isMobile ? 2 : 4;
-        const startTime = Date.now();
-        
-        const rainInterval = setInterval(() => {
-            if (Date.now() - startTime > duration) {
-                clearInterval(rainInterval);
-                return;
-            }
-            
-            for (let i = 0; i < particlesPerFrame; i++) {
-                const x = Math.random() * window.innerWidth;
-                
+        const perFrame = isMobile ? 1 : 3; // reduced from 2/4
+        const end = Date.now() + duration;
+
+        const interval = setInterval(() => {
+            if (Date.now() > end) { clearInterval(interval); return; }
+
+            for (let i = 0; i < perFrame; i++) {
+                const isEmoji = Math.random() > 0.5;
                 confetti.particles.push({
-                    x: x,
+                    x: Math.random() * window.innerWidth,
                     y: -20,
                     vx: (Math.random() - 0.5) * 2,
                     vy: Math.random() * 2 + 1,
-                    
-                    type: Math.random() > 0.5 ? 'emoji' : 'rect',
-                    text: confetti.shapes[Math.floor(Math.random() * confetti.shapes.length)],
+                    type: isEmoji ? 'emoji' : 'rect',
+                    text:  confetti.shapes[Math.floor(Math.random() * confetti.shapes.length)],
                     color: confetti.colors[Math.floor(Math.random() * confetti.colors.length)],
-                    size: 20 + Math.random() * 10,
+                    size: 18 + Math.random() * 10,
                     width: Math.random() * 8 + 4,
                     height: Math.random() * 5 + 2,
-                    
                     rotation: Math.random() * Math.PI * 2,
                     rotationSpeed: (Math.random() - 0.5) * 0.1,
-                    gravity: 0.05,
-                    drag: 0.99,
-                    life: 1.0,
-                    decay: 0.002,
+                    gravity: 0.05, drag: 0.99,
+                    life: 1.0, decay: 0.002,
                     wobble: Math.random() * 10,
                     wobbleSpeed: Math.random() * 0.05 + 0.02
                 });
             }
-            
+
             if (!confetti.animationId) {
                 confetti.lastTime = performance.now();
-                confetti.animate();
+                confetti.animationId = requestAnimationFrame(confetti.animate);
             }
-        }, 50);
+        }, 60);
     },
 
     animate: (currentTime) => {
         if (!confetti.ctx || !confetti.canvas) return;
 
-        const deltaTime = (currentTime - confetti.lastTime) / 16.66;
+        const dt = Math.min((currentTime - confetti.lastTime) / 16.66, 3); // cap delta so tab-switch doesn't explode
         confetti.lastTime = currentTime;
 
         confetti.ctx.clearRect(0, 0, confetti.canvas.width, confetti.canvas.height);
@@ -149,24 +122,21 @@ const confetti = {
         for (let i = confetti.particles.length - 1; i >= 0; i--) {
             const p = confetti.particles[i];
 
-            p.life -= p.decay * (deltaTime || 1);
-
-            if (p.life <= 0 || p.y > confetti.canvas.height + 50) {
+            p.life -= p.decay * dt;
+            if (p.life <= 0 || p.y > confetti.canvas.height + 60) {
                 confetti.particles.splice(i, 1);
                 continue;
             }
 
-            // Physics update
-            p.x += p.vx * (deltaTime || 1);
-            p.y += p.vy * (deltaTime || 1);
-            p.vy += p.gravity * (deltaTime || 1);
+            p.x  += p.vx * dt;
+            p.y  += p.vy * dt;
+            p.vy += p.gravity * dt;
             p.vx *= p.drag;
             p.vy *= p.drag;
-            p.rotation += p.rotationSpeed * (deltaTime || 1);
-            
-            // Wobble effect for rectangles
+            p.rotation += p.rotationSpeed * dt;
+
             if (p.wobble !== undefined) {
-                p.wobble += p.wobbleSpeed * (deltaTime || 1);
+                p.wobble += p.wobbleSpeed * dt;
                 p.x += Math.sin(p.wobble) * 0.5;
             }
 
@@ -174,17 +144,17 @@ const confetti = {
             confetti.ctx.globalAlpha = p.life;
             confetti.ctx.translate(p.x, p.y);
             confetti.ctx.rotate(p.rotation);
-            
+
             if (p.type === 'emoji') {
                 confetti.ctx.font = `${p.size}px serif`;
-                confetti.ctx.textAlign = 'center';
+                confetti.ctx.textAlign    = 'center';
                 confetti.ctx.textBaseline = 'middle';
                 confetti.ctx.fillText(p.text, 0, 0);
-            } else if (p.type === 'rect') {
+            } else {
                 confetti.ctx.fillStyle = p.color;
                 confetti.ctx.fillRect(-p.width / 2, -p.height / 2, p.width, p.height);
             }
-            
+
             confetti.ctx.restore();
         }
 
@@ -194,34 +164,25 @@ const confetti = {
             confetti.animationId = null;
         }
     },
-    
+
     playSound: () => {
         try {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // Create a celebratory sound
-            const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-            
+            const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+            const notes = [523.25, 659.25, 783.99, 1046.50];
             notes.forEach((freq, i) => {
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.frequency.value = freq;
-                oscillator.type = 'sine';
-                
-                const startTime = audioContext.currentTime + i * 0.05;
-                gainNode.gain.setValueAtTime(0.08, startTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3);
-                
-                oscillator.start(startTime);
-                oscillator.stop(startTime + 0.3);
+                const osc  = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = freq;
+                osc.type = 'sine';
+                const t = ctx.currentTime + i * 0.055;
+                gain.gain.setValueAtTime(0.08, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+                osc.start(t);
+                osc.stop(t + 0.3);
             });
-        } catch (e) {
-            // Audio context not supported
-        }
+        } catch (_) {}
     }
 };
 

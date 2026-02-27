@@ -1,18 +1,18 @@
 const gallery = {
     photos: [
-        { id: 1, msg: "Remember this? lol 😂" },
-        { id: 2, msg: "You look so happy here 💖" },
-        { id: 3, msg: "AOT Marathon night! 🎬" },
-        { id: 4, msg: "That time we got lost 🗺️" },
-        { id: 5, msg: "Best food ever 🍕" },
-        { id: 6, msg: "Classic Dhanya moment 😊" },
-        { id: 7, msg: "Don't kill me for this one 😅" },
-        { id: 8, msg: "Happy vibes only ✨" },
-        { id: 9, msg: "Adventure time! 🌟" },
+        { id: 1,  msg: "Remember this? lol 😂" },
+        { id: 2,  msg: "You look so happy here 💖" },
+        { id: 3,  msg: "AOT Marathon night! 🎬" },
+        { id: 4,  msg: "That time we got lost 🗺️" },
+        { id: 5,  msg: "Best food ever 🍕" },
+        { id: 6,  msg: "Classic Dhanya moment 😊" },
+        { id: 7,  msg: "Don't kill me for this one 😅" },
+        { id: 8,  msg: "Happy vibes only ✨" },
+        { id: 9,  msg: "Adventure time! 🌟" },
         { id: 10, msg: "Happy Birthday!! 🎂" }
     ],
 
-    rainItems: ['✨', '💖', '🦋', '🌷', '🎂', '💕', '⭐', '💫', '💐', '🌸', '💮', '🪷', '🌹', '🌺', '🎀', '💝'],
+    rainItems: ['✨', '💖', '🦋', '🌷', '🎂', '💕', '⭐', '💫', '💐', '🌸', '🪷', '🎀', '💝'],
     rainParticles: [],
 
     init: () => {
@@ -22,31 +22,29 @@ const gallery = {
         gallery.clearRain();
         container.innerHTML = '';
 
+        const isMobile  = window.innerWidth < 768;
+        const radius    = Math.min(window.innerWidth, window.innerHeight) * (isMobile ? 0.38 : 0.33);
+        const centerX   = window.innerWidth  / 2;
+        const centerY   = window.innerHeight / 2;
         const angleStep = (2 * Math.PI) / gallery.photos.length;
-        const centerX = window.innerWidth / 2;
-        const centerY = window.innerHeight / 2;
-        const radius = Math.min(window.innerWidth, window.innerHeight) * (window.innerWidth < 768 ? 0.38 : 0.33);
 
         gallery.photos.forEach((photo, index) => {
             const frame = document.createElement('div');
             frame.className = 'photo-frame';
 
-            const angle = index * angleStep - Math.PI / 2; // Start from top
-            const x = centerX + radius * Math.cos(angle) - 60;
-            const y = centerY + radius * Math.sin(angle) - 60;
+            const angle = index * angleStep - Math.PI / 2;
+            frame.style.left = `${centerX + radius * Math.cos(angle) - 60}px`;
+            frame.style.top  = `${centerY + radius * Math.sin(angle) - 60}px`;
+            frame.style.willChange = 'transform'; // hint to browser: this element will move
 
-            frame.style.left = `${x}px`;
-            frame.style.top = `${y}px`;
-            
-            const initialRotation = Math.random() * 20 - 10;
-            frame.style.transform = `rotate(${initialRotation}deg)`;
+            const rot = Math.random() * 20 - 10;
+            frame.dataset.baseRot = rot; // store so hover can restore it
 
             const img = document.createElement('img');
             img.loading = 'lazy';
             img.src = `assets/images/photos/${photo.id}.jpg`;
             img.alt = `Photo ${photo.id}`;
-
-            img.onerror = function() {
+            img.onerror = function () {
                 this.src = `https://picsum.photos/300/400?random=${photo.id}`;
                 this.onerror = null;
             };
@@ -55,25 +53,25 @@ const gallery = {
             frame.onclick = () => gallery.openModal(photo);
             container.appendChild(frame);
 
-            // Staggered entrance animation
+            // Entrance — stagger so they pop in one by one
             gsap.from(frame, {
                 scale: 0,
                 opacity: 0,
                 rotation: Math.random() * 60 - 30,
-                duration: 0.8,
-                delay: index * 0.1,
-                ease: "back.out(1.7)"
+                duration: 0.7,
+                delay: index * 0.08,
+                ease: 'back.out(1.5)'
             });
 
-            // Floating animation
+            // Gentle idle float
             gsap.to(frame, {
-                y: Math.random() * 25 - 12,
-                x: Math.random() * 10 - 5,
-                rotation: initialRotation + (Math.random() * 6 - 3),
+                y: Math.random() * 22 - 11,
+                x: Math.random() * 8 - 4,
+                rotation: rot + (Math.random() * 5 - 2.5),
                 duration: 3 + Math.random() * 2,
                 repeat: -1,
                 yoyo: true,
-                ease: "sine.inOut",
+                ease: 'sine.inOut',
                 delay: Math.random() * 2
             });
         });
@@ -82,46 +80,47 @@ const gallery = {
     },
 
     createRain: (container) => {
-        const particleCount = window.innerWidth < 768 ? 25 : 40;
+        // 20 desktop / 10 mobile — down from 40/25. Still looks great, way faster
+        const count = window.innerWidth < 768 ? 10 : 20;
 
-        for (let i = 0; i < particleCount; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'rain-particle';
-            
-            particle.innerText = gallery.rainItems[Math.floor(Math.random() * gallery.rainItems.length)];
-            
-            const fontSize = Math.random() * 20 + 15;
-            particle.style.fontSize = `${fontSize}px`;
-            particle.style.opacity = Math.random() * 0.5 + 0.2;
-            
-            const startX = Math.random() * 100;
-            particle.style.left = `${startX}vw`;
-            particle.style.top = '-50px';
+        for (let i = 0; i < count; i++) {
+            const el = document.createElement('div');
+            el.className = 'rain-particle';
+            el.textContent = gallery.rainItems[Math.floor(Math.random() * gallery.rainItems.length)];
 
-            container.appendChild(particle);
-            gallery.rainParticles.push(particle);
+            const size = Math.random() * 18 + 13;
+            el.style.cssText = `
+                font-size: ${size}px;
+                opacity: ${Math.random() * 0.45 + 0.15};
+                left: ${Math.random() * 100}vw;
+                top: -50px;
+                will-change: transform;
+            `;
 
-            // Create swaying rain effect
-            const duration = Math.random() * 8 + 8;
-            const swayAmount = Math.random() * 100 - 50;
-            
-            gsap.to(particle, {
-                y: '120vh',
-                x: swayAmount,
-                rotation: Math.random() * 720 - 360,
-                duration: duration,
-                ease: "none",
+            container.appendChild(el);
+            gallery.rainParticles.push(el);
+
+            gsap.to(el, {
+                y: '115vh',
+                x: Math.random() * 90 - 45,
+                rotation: Math.random() * 600 - 300,
+                duration: Math.random() * 9 + 8,
+                ease: 'none',
                 repeat: -1,
-                delay: Math.random() * 8
+                delay: Math.random() * 9,
+                // Reset position on repeat so it looks like continuous rain
+                onRepeat: () => {
+                    el.style.left = `${Math.random() * 100}vw`;
+                }
             });
         }
     },
 
     clearRain: () => {
-        gallery.rainParticles.forEach(particle => {
-            if (particle && particle.parentNode) {
-                gsap.killTweensOf(particle);
-                particle.parentNode.removeChild(particle);
+        gallery.rainParticles.forEach(p => {
+            if (p && p.parentNode) {
+                gsap.killTweensOf(p);
+                p.parentNode.removeChild(p);
             }
         });
         gallery.rainParticles = [];
@@ -129,50 +128,54 @@ const gallery = {
 
     openModal: (photoData) => {
         const modal = document.getElementById('photo-modal');
-        const img = document.getElementById('modal-img');
-        const msg = document.getElementById('modal-msg');
+        const img   = document.getElementById('modal-img');
+        const msg   = document.getElementById('modal-msg');
 
         img.src = `assets/images/photos/${photoData.id}.jpg`;
-        img.onerror = function() {
+        img.onerror = function () {
             this.src = `https://picsum.photos/400/600?random=${photoData.id}`;
+            this.onerror = null;
         };
         msg.textContent = photoData.msg;
 
+        // ── Fix the modal flash bug ──────────────────────────────────────
+        // We must set display BEFORE animating opacity, otherwise GSAP
+        // animates an invisible element and you get a sudden pop-in.
         modal.classList.remove('hidden');
-        
-        // Animate modal in
-        gsap.fromTo(modal, 
-            { opacity: 0 },
-            { opacity: 1, duration: 0.3, ease: "power2.out" }
-        );
-        
-        requestAnimationFrame(() => {
-            modal.classList.add('active');
+        modal.classList.add('active');
+        modal.style.opacity = '0';
+
+        gsap.to(modal, {
+            opacity: 1,
+            duration: 0.3,
+            ease: 'power2.out'
         });
+
+        // Prevent body scroll while modal open
+        document.body.style.overflow = 'hidden';
     },
 
     closeModal: () => {
         const modal = document.getElementById('photo-modal');
-        
         gsap.to(modal, {
             opacity: 0,
-            duration: 0.3,
-            ease: "power2.in",
+            duration: 0.25,
+            ease: 'power2.in',
             onComplete: () => {
                 modal.classList.remove('active');
                 modal.classList.add('hidden');
+                modal.style.opacity = '';
+                document.body.style.overflow = '';
             }
         });
     }
 };
 
-// Handle resize
+// Debounced resize — only re-init gallery after user stops resizing
+let _resizeTimer = null;
 window.addEventListener('resize', () => {
-    const galleryScreen = document.getElementById('screen-gallery');
-    if (galleryScreen && !galleryScreen.classList.contains('hidden')) {
-        clearTimeout(window.resizeTimer);
-        window.resizeTimer = setTimeout(() => {
-            gallery.init();
-        }, 300);
-    }
+    const screen = document.getElementById('screen-gallery');
+    if (!screen || screen.classList.contains('hidden')) return;
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(gallery.init, 350);
 });
