@@ -35,10 +35,10 @@ const gallery = {
             const angle = index * angleStep - Math.PI / 2;
             frame.style.left = `${centerX + radius * Math.cos(angle) - 60}px`;
             frame.style.top  = `${centerY + radius * Math.sin(angle) - 60}px`;
-            frame.style.willChange = 'transform'; // hint to browser: this element will move
+            frame.style.willChange = 'transform';
 
             const rot = Math.random() * 20 - 10;
-            frame.dataset.baseRot = rot; // store so hover can restore it
+            frame.dataset.baseRot = rot;
 
             const img = document.createElement('img');
             img.loading = 'lazy';
@@ -49,7 +49,12 @@ const gallery = {
                 this.onerror = null;
             };
 
+            const caption = document.createElement('div');
+            caption.className = 'photo-caption';
+            caption.textContent = photo.msg;
+
             frame.appendChild(img);
+            frame.appendChild(caption);
             frame.onclick = () => gallery.openModal(photo);
             container.appendChild(frame);
 
